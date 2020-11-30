@@ -1,8 +1,13 @@
 [package]
 name = "opimps"
+description = "A simple library of attribute macros to assist with overloading operators for borrowed and owned data."
 version = "0.1.0"
 authors = ["Tony Nguyen <900692-t101@users.noreply.gitlab.com>"]
 edition = "2018"
+readme = "README.md"
+license-file = "LICENSE.txt"
+keywords = ["operators", "overload"]
+repository = "https://github.com/T101N/opimps"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
