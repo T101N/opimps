@@ -78,7 +78,7 @@ let total = garage_a + &garage_b;
 let total = &garage_a + &garage_b;
 ```
 
-**[NOTE!]** *Keep in mind of Rust's hidden* `move` *semantics and that the code won't compile if we tried all of the* `total` *assignments at the same time. Non-referenced data are moved and popped out of the program stack once it's called, and will no longer be available in the scope it was originally created*.
+**[NOTE!]** *Keep in mind of Rust's hidden* `move` *semantics and that the code won't compile if we tried all of the* `total` *assignments at the same time. Non-referenced data are moved out of the scope once it's called, and will no longer be available in the scope it was originally created*.
 
 For those familiar with C++11 and above, you can read more from [here](https://en.cppreference.com/w/cpp/utility/move).
 
