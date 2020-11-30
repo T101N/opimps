@@ -10,7 +10,7 @@
     * [impl_ops_rprim](#impl_ops_rprim)
     * [impl_uni_op](#impl_uni_op)
     * [impl_uni_ops](#impl_uni_ops)
-- [A Realistic Example](#a_realistic_example)
+- [A Realistic Example](#a-realistic-example)
 
 ## Summary
 When overloading operators in Rust, we can run into design issues on whether the data should be `borrowed` or `owned`. For a good number of cases, we don't care about it and it should be up to the caller of the operator to decide what is appropriate to use.
@@ -75,7 +75,7 @@ impl Add<&Garage> for &Garage {
 
 ```
 
-Notice that in the generated code, there are 4 implementations to represent all possible use cases when adding the number of cars in `Garages`, and the body of the function is essentially the same in all those cases. This is possible due to Rust's ability to automatically determine the level of propagation required to access members of a `structure`, unlike C++ where we need to be specific and use a combination of the dot operator or arrow operator depending on if the input is a referenced object or not. 
+Notice that in the generated code, there are 4 implementations to represent all possible use cases when adding the number of cars in `Garages`, and the body of the function is essentially the same in all those cases. This is possible due to Rust's ability to automatically determine the level of propagation required to access members of a `structure`, unlike C++ where we need to be specific and use a combination of the dereferencing, dot operators and/or arrow operators depending on if the input is a referenced object or not. 
 
 We can now use the operator for either `borrowed` and/or `owned` data in any order.
 
@@ -98,15 +98,9 @@ Official information on Rust's ownership of data can be found [here](https://doc
 # Usage
 
 ## impl_op
-In the summary, we introduced `impl_ops` which is a macro that generates code for borrowed and owned data. `impl_op` (notice the missing 's' at the end) is a way to overload operators the normal way without implementing variations for borrowed data.
+In the summary, we introduced `impl_ops` which is a macro that generates code for borrowed and owned data. `impl_op` (notice the missing 's' at the end) is a way to overload operators the normal way without generating variations for borrowed data.
 
 ```rust
-use core::ops::Add;
-
-struct Garage {
-    number_of_cars: u64
-}
-
 #[opimps::impl_op(Add)]
 fn add(self: Garage, rhs: Garage) -> u64 {
     self.number_of_cars + rhs.number_of_cars
@@ -116,12 +110,6 @@ fn add(self: Garage, rhs: Garage) -> u64 {
 This generates a 1:1 implementation as follows.
 
 ```rust
-use core::ops::Add;
-
-struct Garage {
-    number_of_cars: u64
-}
-
 impl Add for Garage {
     type Output = u64;
     fn add(self, rhs: Garage) -> u64 {
@@ -145,17 +133,11 @@ assert_eq!(13, total);
 // let total = garage_a + &garage_b;
 // let total = &garage_a + &garage_b;
 ```
-This by itself isn't very useful compared to `impl_ops` that we demonstrated in the example from the summary, but it allows us a way to fine tune implementations based on our own design choices.
+This by itself isn't very useful compared to `impl_ops` that we demonstrated in the example from the summary, but it allows us a way to fine-tune implementations based on our own design choices.
 
 If we wanted to overload the operator where only the **left** side of the operator is a borrowed type, then we could implement it as follows.
 
 ```rust
-use core::ops::Add;
-
-struct Garage {
-    number_of_cars: u64
-}
-
 #[opimps::impl_op(Add)]
 fn add(self: &Garage, rhs: Garage) -> u64 {
     self.number_of_cars + rhs.number_of_cars
@@ -165,12 +147,6 @@ fn add(self: &Garage, rhs: Garage) -> u64 {
 This generates the following.
 
 ```rust
-use core::ops::Add;
-
-struct Garage {
-    number_of_cars: u64
-}
-
 impl Add for &Garage {
     type Output = u64;
     fn add(self, rhs: Garage) -> u64 {
