@@ -252,6 +252,8 @@ fn not(self: Person) -> Person {
 We've only shown useless examples so far, but that was because these were simplified so that it's easier to look at once you know how it works. The following is an example that makes use of [`SIMD`](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#!=undefined) instructions for `x86_64` architecture, to compute quaternion multiplications. While it isn't the complete source code, this is just a snippet of how `opimps` is being used to implement a mathematical library.
 
 ```rust
+// No explanation of quaternions will be provided here since it involves a lot of theory. You only need to know that it's used to perform 3D rotations while avoiding the issues of gimbal locking that occurs from performing rotations using euler angles.
+
 /// ```
 /// use noname::v32::quat::Quat;
 /// let l = Quat::<f32>::new(7.0, 1.0, 9.0, 4.0);
