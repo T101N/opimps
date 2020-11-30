@@ -188,7 +188,7 @@ fn add(self: Garage, rhs: i64)
 > todo
 
 ## impl_ops_lprim and impl_ops_rprim
-There are cases where we want to generate code our borrowed data but one of the elements are a primitive. This can and will cause issues if we were to use `impl_ops`. As such, `impl_ops_lprim` and `impl_ops_rprim` were created to work around such issues; representing left side primitvie and right side primitive respectively.
+There are cases where we want to generate code for borrowed data but one of the elements are a primitive. This can and will cause issues if we were to use `impl_ops`. As such, `impl_ops_lprim` and `impl_ops_rprim` were created to work around such issues; representing left side primitvie and right side primitive respectively.
 
 
 ### impl_ops_lprim
