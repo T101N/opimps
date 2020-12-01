@@ -8,6 +8,10 @@ readme = "README.md"
 license-file = "LICENSE.txt"
 keywords = ["operators", "overload"]
 repository = "https://github.com/T101N/opimps"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
