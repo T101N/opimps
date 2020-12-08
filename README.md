@@ -91,9 +91,10 @@ let total = &garage_a + &garage_b;
 
 > **[NOTE!]** *Keep in mind of Rust's hidden* `move` *semantics and that the code won't compile if we tried all of the* `total` *assignments at the same time. Non-referenced data are moved out of the scope once it's called, and will no longer be available in the scope it was originally created*.
 
-For those familiar with C++11 and above, you can read more from [here](https://en.cppreference.com/w/cpp/utility/move).
+> Official information on Rust's ownership of data can be found [here](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html), and [here](https://doc.rust-lang.org/beta/rust-by-example/scope/move.html).
 
-Official information on Rust's ownership of data can be found [here](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html), and [here](https://doc.rust-lang.org/beta/rust-by-example/scope/move.html).
+> For those familiar with C++11 and above, you can read more from [here](https://en.cppreference.com/w/cpp/utility/move).
+
 
 # Usage
 
@@ -181,20 +182,40 @@ fn add(self: Garage, rhs: &Garage);
 fn add(self: &Garage, rhs: &Garage)
 
 // Using a different type so that we can do something like `garage_a + 2`
-fn add(self: Garage, rhs: i64)
+fn add(self: Garage, rhs: u64)
 ```
 
 ## impl_ops
-> todo
+`impl_ops` uses `impl_op` under the hood to generate implementations of binary operators for combinations of borrowed and owned data.
+
+```rust
+use core::ops::Mul;
+
+struct A;
+struct B;
+struct C;
+
+#[opimps::impl_ops(Mul)]
+fn mul(self: A, rhs: B) -> C { ... }
+
+```
+The above would generate the following.
+
+```rust
+impl Mul<B> for A { type Output = C; ... }
+impl Mul<B> for &A { type Output = C; ... }
+impl Mul<&B> for A { type Output = C; ... }
+impl Mul<&B> for &A { type Output = C; ... }
+```
 
 ## impl_ops_lprim and impl_ops_rprim
-There are cases where we want to generate code for borrowed data but one of the elements are a primitive. This can and will cause issues if we were to use `impl_ops`. As such, `impl_ops_lprim` and `impl_ops_rprim` were created to work around such issues; representing left side primitvie and right side primitive respectively.
+There are cases where we want to generate code for borrowed data but one of the elements are a primitive. This can and will cause issues if we were to use `impl_ops`. As such, `impl_ops_lprim` and `impl_ops_rprim` were created to work around such issues; representing left side primitive and right side primitive respectively.
 
 
 ### impl_ops_lprim
 ```rust
 #[opimps::impl_ops_lprim]
-fn add(self: i64, rhs: Garage) -> i64 {
+fn add(self: u64, rhs: Garage) -> u64 {
     ...
 }
 ```
@@ -202,7 +223,7 @@ fn add(self: i64, rhs: Garage) -> i64 {
 ### impl_ops_rprim
 ```rust
 #[opimps::impl_ops_lprim]
-fn add(self: Garage, rhs: i64) -> i64 {
+fn add(self: Garage, rhs: u64) -> u64 {
     ...
 }
 ```
@@ -222,7 +243,33 @@ fn not(self: Person) -> Person {
 ```
 
 ## impl_uni_ops
-> todo
+Much like how `impl_ops` generates implementations for borrowed and owned data for binary operators, `impl_uni_ops` generates implementations for borrowed and owned data for unary operators. Under the hood, the implementation of `impl_uni_ops` uses `impl_uni_op`.
+
+Given the following `struct`:
+```rust
+struct Person {
+    has_cars: bool
+}
+```
+
+Implementing the unary operator `!` for `Person` could be done like:
+
+```rust
+use core::ops::Not;
+
+#[opimps::impl_uni_ops(Not)]
+fn not(self: Person) -> Person {
+    Person { has_cars: !self.has_cars }
+}
+```
+
+We should now be capable of doing the following:
+```rust
+let a = Person { has_cars: true };
+
+let res = !(&a);
+let res = !a;
+```
 
 # A Realistic Example
 We've only shown useless examples so far, but that was because these were simplified so that it's easier to look at once you know how it works. The following is an example that makes use of [`SIMD`](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#!=undefined) instructions for `x86_64` architecture, to compute quaternion multiplications. While it isn't the complete source code, this is just a snippet of how `opimps` is being used to implement a mathematical library.
