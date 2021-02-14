@@ -9,7 +9,7 @@ license-file = "LICENSE.txt"
 keywords = ["operators", "overload"]
 repository = "https://github.com/T101N/opimps"
 include = [
-    "**/*.rs",
+    "src/**/*.rs",
     "Cargo.toml",
 ]
 
