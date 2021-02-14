@@ -22,4 +22,4 @@ docker run -u 1000:1000 -it --rm \
         -v ${DIR}/../${PROJECT}:${PROJECT_DIR}:Z \
         -v ${HOST_CARGO_CACHE}:${CONTAINER_CARGO_CACHE}:Z \
         --name ${CONTAINER_NAME} ${IMAGE_NAME} \
-        /bin/bash -c "source .profile && cd ${PROJECT_DIR} && cargo test";
+        /bin/bash -c "source .profile && cd ${PROJECT_DIR} && cargo test && cd tests && cargo test";

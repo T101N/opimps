@@ -10,6 +10,7 @@
     * [impl_ops_rprim](#impl_ops_rprim)
     * [impl_uni_op](#impl_uni_op)
     * [impl_uni_ops](#impl_uni_ops)
+    * [Generics](#generics)
 - [A Realistic Example](#a-realistic-example)
 
 ## Summary
@@ -269,6 +270,32 @@ let a = Person { has_cars: true };
 
 let res = !(&a);
 let res = !a;
+```
+
+
+## Generics
+We can use generics for `impl_ops` and `impl_uni_ops` much like how we use generics for standard functions.
+
+```rust
+use std::ops::Add;
+
+pub struct Num<T>(pub T);
+
+/// ```
+/// use opimps::impl_ops;
+/// use mycrate::Num;
+/// 
+/// let a = Num(2.0);
+/// let b = Num(3.0);
+/// 
+/// let res = a + b;
+/// assert_eq!(5.0, res.0);
+/// ```
+#[opimps::impl_ops(Add)]
+fn add<T>(self: Num<T>, rhs: Num<T>) -> Num<T> where T: Add<Output = T> + Copy {
+    Num(self.0 + rhs.0)
+}
+
 ```
 
 # A Realistic Example
