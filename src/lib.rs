@@ -51,7 +51,7 @@ pub fn impl_uni_op(attr: TokenStream, item: TokenStream) -> TokenStream {
         |tkn, attr|{ tkn.extend(attr.to_token_stream()); tkn }
     );
 
-    let lhs_type = lhs.clone().ty;
+    let lhs_type = &lhs.ty;
 
     let fn_body = fn_item.block;
     
@@ -60,8 +60,10 @@ pub fn impl_uni_op(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Function must contain a return type.") }
     };
 
+    let where_clause = &fn_generics.where_clause;
+
     let token = quote! {
-        impl #fn_generics #trait_path for #lhs_type {
+        impl #fn_generics #trait_path for #lhs_type #where_clause {
             type Output = #fn_type;
             #other_tkns
             fn #fn_name (self) -> Self::Output 
@@ -115,8 +117,8 @@ pub fn impl_uni_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let (comments, other_tkns) = extract_comments(&attrs);
 
-    let lhs_pat = lhs.clone().pat;
-    let lhs_type = lhs.clone().ty;
+    let lhs_pat = &lhs.pat;
+    let lhs_type = &lhs.ty;
 
     let fn_body = fn_item.block;
     
@@ -125,16 +127,18 @@ pub fn impl_uni_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Function must contain a return type.") }
     };
 
+    let where_clause = &fn_generics.where_clause;
+
     let token = quote! {
         #comments
         #other_tkns
         #[opimps::impl_uni_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs) -> #fn_output #where_clause
             #fn_body
 
         #other_tkns
         #[opimps::impl_uni_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type) -> #fn_output #where_clause
             #fn_body
     };
 
@@ -207,8 +211,8 @@ pub fn impl_op(attr: TokenStream, item: TokenStream) -> TokenStream {
         |tkn, attr|{ tkn.extend(attr.to_token_stream()); tkn }
     );
 
-    let lhs_type = lhs.clone().ty;
-    let rhs_type = rhs.clone().ty;
+    let lhs_type = &lhs.ty;
+    let rhs_type = &rhs.ty;
 
     let fn_body = fn_item.block;
     
@@ -217,8 +221,10 @@ pub fn impl_op(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Function must contain a return type.") }
     };
 
+    let where_clause = &fn_generics.where_clause;
+    
     let token = quote! {
-        impl #fn_generics #trait_path<#rhs_type> for #lhs_type {
+        impl #fn_generics #trait_path<#rhs_type> for #lhs_type #where_clause {
             type Output = #fn_output;
             #other_tkns
             fn #fn_name (self, #rhs) -> Self::Output {
@@ -273,10 +279,10 @@ pub fn impl_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Error processing second argument.")}
     };
 
-    let lhs_pat = lhs.clone().pat;
-    let lhs_type = lhs.clone().ty;
-    let rhs_pat = rhs.clone().pat;
-    let rhs_type = rhs.clone().ty;
+    let lhs_pat = &lhs.pat;
+    let lhs_type = &lhs.ty;
+    let rhs_pat = &rhs.pat;
+    let rhs_type = &rhs.ty;
     
     let fn_body = fn_item.block;    
     let fn_output = match fn_item.sig.output {
@@ -288,26 +294,28 @@ pub fn impl_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let (comments, other_tkns) = extract_comments(&attrs);
 
+    let where_clause = &fn_generics.where_clause;
+
     let token = quote!{
         #comments
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output #where_clause
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: &#rhs_type) -> #fn_output #where_clause
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output #where_clause
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output #where_clause
             #fn_body
     };
     
@@ -358,10 +366,10 @@ pub fn impl_ops_rprim(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Error processing second argument.")}
     };
 
-    let lhs_pat = lhs.clone().pat;
-    let lhs_type = lhs.clone().ty;
-    let rhs_pat = rhs.clone().pat;
-    let rhs_type = rhs.clone().ty;
+    let lhs_pat = &lhs.pat;
+    let lhs_type = &lhs.ty;
+    let rhs_pat = &rhs.pat;
+    let rhs_type = &rhs.ty;
     
     let fn_body = fn_item.block;    
     let fn_output = match fn_item.sig.output {
@@ -372,17 +380,19 @@ pub fn impl_ops_rprim(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = fn_item.attrs;
     
     let (comments, other_tkns) = extract_comments(&attrs);
+    
+    let where_clause = &fn_generics.where_clause;
 
     let token = quote!{
         #comments
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output #where_clause
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output #where_clause
             #fn_body
     };
     
@@ -433,10 +443,10 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Error processing second argument.")}
     };
 
-    let lhs_pat = lhs.clone().pat;
-    let lhs_type = lhs.clone().ty;
-    let rhs_pat = rhs.clone().pat;
-    let rhs_type = rhs.clone().ty;
+    let lhs_pat = &lhs.pat;
+    let lhs_type = &lhs.ty;
+    let rhs_pat = &rhs.pat;
+    let rhs_type = &rhs.ty;
     
     let fn_body = fn_item.block;    
     let fn_output = match fn_item.sig.output {
@@ -448,16 +458,17 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let (comments, other_tkns) = extract_comments(&attrs);
     
+    let where_clause = &fn_generics.where_clause;
     let token = quote!{
         #comments
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output #where_clause
             #fn_body
         
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output #where_clause
             #fn_body
     };
     
