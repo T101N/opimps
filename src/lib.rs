@@ -30,6 +30,7 @@ pub fn impl_uni_op(attr: TokenStream, item: TokenStream) -> TokenStream {
     let trait_path = parse_macro_input!(attr as syn::TypePath);
     let fn_item = parse_macro_input!(item as syn::ItemFn);
     let fn_name = fn_item.sig.ident;
+    let fn_generics = fn_item.sig.generics;
     let mut fn_args = fn_item.sig.inputs.into_iter();
 
     const INSUFFICIENT_ARGS_MSG: &str = "Function definition requires an argument (self: T).";
@@ -60,7 +61,7 @@ pub fn impl_uni_op(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let token = quote! {
-        impl #trait_path for #lhs_type {
+        impl #fn_generics #trait_path for #lhs_type {
             type Output = #fn_type;
             #other_tkns
             fn #fn_name (self) -> Self::Output 
@@ -98,6 +99,7 @@ pub fn impl_uni_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
     let trait_path = parse_macro_input!(attr as syn::TypePath);
     let fn_item = parse_macro_input!(item as syn::ItemFn);
     let fn_name = fn_item.sig.ident;
+    let fn_generics = fn_item.sig.generics;
 
     let mut fn_args = fn_item.sig.inputs.into_iter();
     const INSUFFICIENT_ARGS_MSG: &str = "Function definition requires an argument (self: T).";
@@ -127,12 +129,12 @@ pub fn impl_uni_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
         #comments
         #other_tkns
         #[opimps::impl_uni_op(#trait_path)]
-        fn #fn_name(#lhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs) -> #fn_output 
             #fn_body
 
         #other_tkns
         #[opimps::impl_uni_op(#trait_path)]
-        fn #fn_name(#lhs_pat: &#lhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type) -> #fn_output 
             #fn_body
     };
 
@@ -178,6 +180,7 @@ pub fn impl_op(attr: TokenStream, item: TokenStream) -> TokenStream {
     let trait_path = parse_macro_input!(attr as syn::TypePath);
     let fn_item = parse_macro_input!(item as syn::ItemFn);
     let fn_name = fn_item.sig.ident;
+    let fn_generics = fn_item.sig.generics;
     let mut fn_args = fn_item.sig.inputs.into_iter();
 
     const INSUFFICIENT_ARGS_MSG: &str = "Requires two arguments (self: T1, rhs: T2).";
@@ -215,7 +218,7 @@ pub fn impl_op(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let token = quote! {
-        impl #trait_path<#rhs_type> for #lhs_type {
+        impl #fn_generics #trait_path<#rhs_type> for #lhs_type {
             type Output = #fn_output;
             #other_tkns
             fn #fn_name (self, #rhs) -> Self::Output {
@@ -252,6 +255,7 @@ pub fn impl_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
     let trait_path = parse_macro_input!(attr as syn::TypePath);
     let fn_item = parse_macro_input!(item as syn::ItemFn);
     let fn_name = fn_item.sig.ident;
+    let fn_generics= fn_item.sig.generics;
     let mut fn_args = fn_item.sig.inputs.into_iter();
 
     const INSUFFICIENT_ARGS_MSG: &str = "Requires two arguments (self: T1, rhs: T2).";
@@ -288,22 +292,22 @@ pub fn impl_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
         #comments
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs, #rhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output 
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs_pat: &#lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output
             #fn_body
     };
     
@@ -336,6 +340,7 @@ pub fn impl_ops_rprim(attr: TokenStream, item: TokenStream) -> TokenStream {
     let trait_path = parse_macro_input!(attr as syn::TypePath);
     let fn_item = parse_macro_input!(item as syn::ItemFn);
     let fn_name = fn_item.sig.ident;
+    let fn_generics = fn_item.sig.generics;
     let mut fn_args = fn_item.sig.inputs.into_iter();
 
     const INSUFFICIENT_ARGS_MSG: &str = "Requires two arguments (self: T1, rhs: T2).";
@@ -372,12 +377,12 @@ pub fn impl_ops_rprim(attr: TokenStream, item: TokenStream) -> TokenStream {
         #comments
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs, #rhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output 
             #fn_body
 
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: &#lhs_type, #rhs_pat: #rhs_type) -> #fn_output 
             #fn_body
     };
     
@@ -410,6 +415,7 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
     let trait_path = parse_macro_input!(attr as syn::TypePath);
     let fn_item = parse_macro_input!(item as syn::ItemFn);
     let fn_name = fn_item.sig.ident;
+    let fn_generics = fn_item.sig.generics;
     let mut fn_args = fn_item.sig.inputs.into_iter();
 
     const INSUFFICIENT_ARGS_MSG: &str = "Requires two arguments (self: T1, rhs: T2).";
@@ -446,12 +452,12 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
         #comments
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs, #rhs) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs, #rhs) -> #fn_output 
             #fn_body
         
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name(#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
+        fn #fn_name #fn_generics (#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output 
             #fn_body
     };
     
