@@ -1,11 +1,11 @@
 [package]
 name = "opimps"
 description = "A simple library of attribute macros to assist with overloading operators for borrowed and owned data."
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Tony Nguyen <900692-t101@users.noreply.gitlab.com>"]
 edition = "2018"
 readme = "README.md"
-license-file = "LICENSE.txt"
+license = "Apache-2.0"
 keywords = ["operators", "overload"]
 repository = "https://github.com/T101N/opimps"
 include = [
