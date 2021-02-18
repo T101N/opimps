@@ -1,5 +1,4 @@
 extern crate proc_macro;
-
 use proc_macro::TokenStream;
 
 use quote::{ quote, ToTokens };
@@ -472,6 +471,170 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
             #fn_body
     };
     
+    TokenStream::from(token)
+}
+
+/// The direct implementation for assignment-based operators.
+/// 
+/// ```
+/// pub struct TestObj {
+///     pub val: i32
+/// }
+/// 
+/// #[opimps::impl_op_assign(std::ops::MulAssign)]
+/// fn mul_assign(self: TestObj, rhs: TestObj) {
+///    self.val *= rhs.val;
+/// }
+/// 
+/// #[opimps::impl_op_assign(std::ops::MulAssign)]
+/// fn mul_assign(self: TestObj, rhs: &TestObj) {
+///    self.val *= rhs.val;
+/// }
+/// 
+/// let mut a = TestObj { val: 4 };
+/// let b = TestObj { val: 7 };
+/// 
+/// a *= b;
+/// assert_eq!(28, a.val);
+/// 
+/// let mut a = TestObj { val: 4 };
+/// let b = TestObj { val: 7 };
+/// a *= &b;
+/// 
+/// assert_eq!(28, a.val);
+/// assert_eq!(7, b.val);
+/// ```
+#[proc_macro_attribute]
+pub fn impl_op_assign(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let trait_path = parse_macro_input!(attr as syn::TypePath);
+    let fn_item = parse_macro_input!(item as syn::ItemFn);
+    let fn_name = fn_item.sig.ident;
+    let fn_generics = fn_item.sig.generics;
+    let mut fn_args = fn_item.sig.inputs.into_iter();
+
+    const INSUFFICIENT_ARGS_MSG: &str = "Requires two arguments (self: T1, rhs: T2).";
+
+    let lhs = fn_args.next().expect(INSUFFICIENT_ARGS_MSG);
+    let rhs = fn_args.next().expect(INSUFFICIENT_ARGS_MSG);
+
+    let attrs = fn_item.attrs;
+
+    let lhs = match lhs {
+        syn::FnArg::Typed(e) => e,
+        _ => { panic!("Error processing first argument.")}
+    };
+
+    let rhs = match rhs {
+        syn::FnArg::Typed(e) => e,
+        _ => { panic!("Error processing second argument.")}
+    };
+
+    let mut other_tkns = proc_macro2::TokenStream::new();
+
+    attrs.into_iter().fold(
+        &mut other_tkns,
+        |tkn, attr|{ tkn.extend(attr.to_token_stream()); tkn }
+    );
+
+    let lhs_type = &lhs.ty;
+    let rhs_type = &rhs.ty;
+
+    let fn_body = fn_item.block;
+
+    let where_clause = &fn_generics.where_clause;
+    
+    let token = quote! {
+        impl #fn_generics #trait_path<#rhs_type> for #lhs_type #where_clause {
+            #other_tkns
+            fn #fn_name (&mut self, #rhs) {
+                #fn_body
+            }
+        }
+    };
+
+    TokenStream::from(token)
+}
+
+/// Implement assignment-based operators for both borrowed and owned objects on the right-hand side.
+/// 
+/// ```
+/// pub struct TestObj {
+///     pub val: i32
+/// }
+/// 
+/// #[opimps::impl_ops_assign(std::ops::AddAssign)]
+/// fn add_assign(self: TestObj, rhs: TestObj) {
+///    self.val += rhs.val;
+/// }
+/// 
+/// let mut a = TestObj { val: 4 };
+/// let b = TestObj { val: 7 };
+/// 
+/// a += b;
+/// assert_eq!(11, a.val);
+/// 
+/// let mut a = TestObj { val: 4 };
+/// let b = TestObj { val: 7 };
+/// a += &b;
+/// 
+/// assert_eq!(11, a.val);
+/// assert_eq!(7, b.val);
+/// ```
+#[proc_macro_attribute]
+pub fn impl_ops_assign(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let trait_path = parse_macro_input!(attr as syn::TypePath);
+    let fn_item = parse_macro_input!(item as syn::ItemFn);
+    let fn_name = fn_item.sig.ident;
+    let fn_generics = fn_item.sig.generics;
+    let mut fn_args = fn_item.sig.inputs.into_iter();
+
+    const INSUFFICIENT_ARGS_MSG: &str = "Requires two arguments (self: T1, rhs: T2).";
+
+    let lhs = fn_args.next().expect(INSUFFICIENT_ARGS_MSG);
+    let rhs = fn_args.next().expect(INSUFFICIENT_ARGS_MSG);
+
+    let attrs = fn_item.attrs;
+
+    let lhs = match lhs {
+        syn::FnArg::Typed(e) => e,
+        _ => { panic!("Error processing first argument.")}
+    };
+
+    let rhs = match rhs {
+        syn::FnArg::Typed(e) => e,
+        _ => { panic!("Error processing second argument.")}
+    };
+
+    let mut other_tkns = proc_macro2::TokenStream::new();
+
+    (&attrs).into_iter().fold(
+        &mut other_tkns,
+        |tkn, attr|{ tkn.extend(attr.to_token_stream()); tkn }
+    );
+
+
+    let rhs_type = &rhs.ty;
+    let rhs_pat = &rhs.pat;
+
+    let fn_body = fn_item.block;
+
+    let where_clause = &fn_generics.where_clause;
+    
+    let (comments, other_tkns) = extract_comments(&attrs);
+    
+    let token = quote! {
+        #comments
+        #other_tkns
+        #[opimps::impl_op_assign(#trait_path)]
+        fn #fn_name #fn_generics (#lhs, #rhs) #where_clause
+            #fn_body
+
+        #other_tkns
+        #[opimps::impl_op_assign(#trait_path)]
+        fn #fn_name #fn_generics (#lhs, #rhs_pat: &#rhs_type) #where_clause
+            #fn_body
+    };
+
     TokenStream::from(token)
 }
 

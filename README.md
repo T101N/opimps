@@ -272,6 +272,32 @@ let res = !(&a);
 let res = !a;
 ```
 
+## impl_op_assign
+We can implement assignment-based operators like `+=`, `*=`, `-=`.
+
+```rust
+pub struct TestObj {
+    pub val: i32
+}
+
+#[opimps::impl_ops_assign(std::ops::AddAssign)]
+fn add_assign(self: TestObj, rhs: TestObj) {
+   self.val += rhs.val;
+}
+
+let mut a = TestObj { val: 4 };
+let b = TestObj { val: 7 };
+
+a += b;
+assert_eq!(11, a.val);
+
+let mut a = TestObj { val: 4 };
+let b = TestObj { val: 7 };
+a += &b;
+
+assert_eq!(11, a.val);
+assert_eq!(7, b.val);
+```
 
 ## Generics
 We can use generics for `impl_ops` and `impl_uni_ops` much like how we use generics for standard functions.
