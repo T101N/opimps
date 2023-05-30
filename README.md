@@ -1,5 +1,9 @@
 # opimps
 
+[![Version](https://img.shields.io/crates/v/opimps)](https://crates.io/crates/opimps)
+[![Downloads](https://img.shields.io/crates/d/opimps)](https://crates.io/crates/opimps)
+[![Issues](https://img.shields.io/github/issues/t101n/opimps)](https://github.com/T101N/opimps/issues)
+
 **opimps** simplifies operator overloading for Rust so that it can be written in such a way that is similar to C++, but without the unnecessary duplication of code.
 
 - [opimps](#opimps)
