@@ -1,7 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
-
     struct Dummy<T>(T);
     #[test]
     fn test_impl_ops_generics() {
@@ -48,6 +46,30 @@ mod tests {
         
         let a = -Dummy(4.0);        
         assert_eq!(-4.0, a.0);
+    }
+
+    #[test]
+    fn test_generics_with_lifetime() {
+        use std::ops::Add;
+
+        struct Num<'a, T> {
+            val: &'a mut T
+        }
+
+        #[opimps::impl_ops(Add)]
+        fn add<'a, T>(self: Num<'a, T>, rhs: Num<'a, T>) -> T where T: Add<Output = T> + Copy {
+            *self.val + *rhs.val
+        }
+
+        let mut a = 5;
+        let mut b = 7;
+
+        let a_num = Num { val: &mut a };
+        let b_num = Num { val: &mut b };
+
+        let result = a_num + b_num;
+
+        assert_eq!(12, result);
     }
 
     #[test]
