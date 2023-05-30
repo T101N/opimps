@@ -1,7 +1,7 @@
 [package]
 name = "opimps"
 description = "A simple library of attribute macros to assist with overloading operators for borrowed and owned data."
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Tony Nguyen <900692-t101@users.noreply.gitlab.com>"]
 edition = "2021"
 readme = "README.md"

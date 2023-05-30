@@ -331,7 +331,7 @@ pub fn impl_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     val: i32
 /// }
 ///
-/// #[opimps::impl_ops(Mul)] 
+/// #[opimps::impl_ops_rprim(Mul)] 
 /// fn mul(self: ANumber, rhs: i32) -> i32 {
 ///     return self.val * rhs;
 /// }
@@ -356,7 +356,7 @@ pub fn impl_ops_rprim(attr: TokenStream, item: TokenStream) -> TokenStream {
     let rhs = fn_args.next().expect(INSUFFICIENT_ARGS_MSG);
     
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.")}
     };
 
@@ -365,7 +365,7 @@ pub fn impl_ops_rprim(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Error processing second argument.")}
     };
 
-    let lhs_pat = &lhs.pat;
+    let lhs_pat = &lhs.self_token;
     let lhs_type = &lhs.ty;
     let rhs_pat = &rhs.pat;
     let rhs_type = &rhs.ty;
