@@ -1,4 +1,4 @@
-FROM fedora:32
+FROM fedora:38
 
 # install base c++ dependencies
 RUN dnf install -y \
