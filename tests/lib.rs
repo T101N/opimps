@@ -73,6 +73,29 @@ mod tests {
     }
 
     #[test]
+    fn test_generics_with_different_rhs() {
+        use std::ops::Add;
+
+        struct Num<'a, T> {
+            val: &'a mut T
+        }
+
+        #[opimps::impl_ops(Add)]
+        fn add<'a>(self: Num<'a, i64>, rhs: i64) -> i64 {
+            *self.val + rhs
+        }
+
+        let mut a = 5;
+        let b = 7;
+
+        let a_num = Num { val: &mut a };
+
+        let result = a_num + b;
+
+        assert_eq!(12, result);
+    }
+
+    #[test]
     fn doc_test_generics() {
         use opimps::impl_ops;
         use std::ops::Add;

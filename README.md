@@ -2,15 +2,18 @@
 
 **opimps** simplifies operator overloading for Rust so that it can be written in such a way that is similar to C++, but without the unnecessary duplication of code.
 
+- [opimps](#opimps)
+  - [Summary](#summary)
 - [Usage](#usage)
-
-    * [impl_op](#impl_op)
-    * [impl_ops](#impl_ops)
-    * [impl_ops_lprim](#impl_ops_lprim)
-    * [impl_ops_rprim](#impl_ops_rprim)
-    * [impl_uni_op](#impl_uni_op)
-    * [impl_uni_ops](#impl_uni_ops)
-    * [Generics](#generics)
+  - [impl\_op](#impl_op)
+  - [impl\_ops](#impl_ops)
+  - [impl\_ops\_lprim and impl\_ops\_rprim](#impl_ops_lprim-and-impl_ops_rprim)
+    - [impl\_ops\_lprim](#impl_ops_lprim)
+    - [impl\_ops\_rprim](#impl_ops_rprim)
+  - [impl\_uni\_op](#impl_uni_op)
+  - [impl\_uni\_ops](#impl_uni_ops)
+  - [impl\_op\_assign](#impl_op_assign)
+  - [Generics](#generics)
 - [A Realistic Example](#a-realistic-example)
 
 ## Summary
@@ -20,14 +23,14 @@ In the example below, we overload the binary operator `+` so that it totals the 
 
 Imagine we had a garage that stores a number of cars.
 
-```rust
+```rust ignore
 struct Garage {
     number_of_cars: u64
 }
 ```
 With `opimps`, we can overload operators so that we can do things like adding the number of cars between two garages.
 
-```rust
+```rust ignore
 use core::ops::Add;
 
 #[opimps::impl_ops(Add)]
@@ -39,7 +42,7 @@ fn add(self: Garage, rhs: Garage) -> u64 {
 The code generates the following code behind the scenes that we'd otherwise have to implement by hand if we wanted to allow combinations for owned and borrowed data.
 
 
-```rust
+```rust ignore
 use core::ops::Add;
 
 struct Garage {
@@ -80,7 +83,7 @@ Notice that in the generated code, there are 4 implementations to represent all 
 
 We can now use the operator for either `borrowed` and/or `owned` data in any order.
 
-```rust
+```rust ignore
 let garage_a = Garage { number_of_cars: 4 };
 let garage_b = Garage { number_of_cars: 9 };
 
@@ -90,7 +93,7 @@ let total = garage_a + &garage_b;
 let total = &garage_a + &garage_b;
 ```
 
-> **[NOTE!]** *Keep in mind of Rust's hidden* `move` *semantics and that the code won't compile if we tried all of the* `total` *assignments at the same time. Non-referenced data are moved out of the scope once it's called, and will no longer be available in the scope it was originally created*.
+> **\[NOTE!\]** *Keep in mind of Rust's hidden* `move` *semantics and that the code won't compile if we tried all of the* `total` *assignments at the same time. Non-referenced data are moved out of the scope once it's called, and will no longer be available in the scope it was originally created*.
 
 > Official information on Rust's ownership of data can be found [here](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html), and [here](https://doc.rust-lang.org/beta/rust-by-example/scope/move.html).
 
@@ -102,7 +105,7 @@ let total = &garage_a + &garage_b;
 ## impl_op
 In the summary, we introduced `impl_ops` which is a macro that generates code for borrowed and owned data. `impl_op` (notice the missing 's' at the end) is a way to overload operators the normal way without generating variations for borrowed data.
 
-```rust
+```rust ignore
 #[opimps::impl_op(Add)]
 fn add(self: Garage, rhs: Garage) -> u64 {
     self.number_of_cars + rhs.number_of_cars
@@ -111,7 +114,7 @@ fn add(self: Garage, rhs: Garage) -> u64 {
 
 This generates a 1:1 implementation as follows.
 
-```rust
+```rust ignore
 impl Add for Garage {
     type Output = u64;
     fn add(self, rhs: Garage) -> u64 {
@@ -122,7 +125,7 @@ impl Add for Garage {
 
 This means that we can only do the following and nothing more.
 
-```rust
+```rust ignore
 let garage_a = Garage { number_of_cars: 4 };
 let garage_b = Garage { number_of_cars: 9 };
 
@@ -139,7 +142,7 @@ This by itself isn't very useful compared to `impl_ops` that we demonstrated in 
 
 If we wanted to overload the operator where only the **left** side of the operator is a borrowed type, then we could implement it as follows.
 
-```rust
+```rust ignore
 #[opimps::impl_op(Add)]
 fn add(self: &Garage, rhs: Garage) -> u64 {
     self.number_of_cars + rhs.number_of_cars
@@ -148,7 +151,7 @@ fn add(self: &Garage, rhs: Garage) -> u64 {
 
 This generates the following.
 
-```rust
+```rust ignore
 impl Add for &Garage {
     type Output = u64;
     fn add(self, rhs: Garage) -> u64 {
@@ -159,7 +162,7 @@ impl Add for &Garage {
 
 We can now do `&garage_a + garage_b`.
 
-```rust
+```rust ignore
 let garage_a = Garage { number_of_cars: 4 };
 let garage_b = Garage { number_of_cars: 9 };
 
@@ -175,7 +178,7 @@ assert_eq!(13, total);
 
 Likewise, we can do other combinations of borrowed data with `impl_op` or even use different types.
 
-```rust
+```rust ignore
 // borrowed right hand side
 fn add(self: Garage, rhs: &Garage);
 
@@ -189,7 +192,7 @@ fn add(self: Garage, rhs: u64)
 ## impl_ops
 `impl_ops` uses `impl_op` under the hood to generate implementations of binary operators for combinations of borrowed and owned data.
 
-```rust
+```rust ignore
 use core::ops::Mul;
 
 struct A;
@@ -202,7 +205,7 @@ fn mul(self: A, rhs: B) -> C { ... }
 ```
 The above would generate the following.
 
-```rust
+```rust ignore
 impl Mul<B> for A { type Output = C; ... }
 impl Mul<B> for &A { type Output = C; ... }
 impl Mul<&B> for A { type Output = C; ... }
@@ -214,7 +217,7 @@ There are cases where we want to generate code for borrowed data but one of the 
 
 
 ### impl_ops_lprim
-```rust
+```rust ignore
 #[opimps::impl_ops_lprim]
 fn add(self: u64, rhs: Garage) -> u64 {
     ...
@@ -222,7 +225,7 @@ fn add(self: u64, rhs: Garage) -> u64 {
 ```
 
 ### impl_ops_rprim
-```rust
+```rust ignore
 #[opimps::impl_ops_lprim]
 fn add(self: Garage, rhs: u64) -> u64 {
     ...
@@ -232,7 +235,7 @@ fn add(self: Garage, rhs: u64) -> u64 {
 ## impl_uni_op
 While `impl_op` implement for binary operators, `impl_uni_op` implements for unary operators.
 
-```rust
+```rust ignore
 struct Person {
     has_cars: bool
 }
@@ -247,7 +250,7 @@ fn not(self: Person) -> Person {
 Much like how `impl_ops` generates implementations for borrowed and owned data for binary operators, `impl_uni_ops` generates implementations for borrowed and owned data for unary operators. Under the hood, the implementation of `impl_uni_ops` uses `impl_uni_op`.
 
 Given the following `struct`:
-```rust
+```rust ignore
 struct Person {
     has_cars: bool
 }
@@ -255,7 +258,7 @@ struct Person {
 
 Implementing the unary operator `!` for `Person` could be done like:
 
-```rust
+```rust ignore
 use core::ops::Not;
 
 #[opimps::impl_uni_ops(Not)]
@@ -265,7 +268,7 @@ fn not(self: Person) -> Person {
 ```
 
 We should now be capable of doing the following:
-```rust
+```rust ignore
 let a = Person { has_cars: true };
 
 let res = !(&a);
@@ -275,7 +278,7 @@ let res = !a;
 ## impl_op_assign
 We can implement assignment-based operators like `+=`, `*=`, `-=`.
 
-```rust
+```rust ignore
 pub struct TestObj {
     pub val: i32
 }
@@ -302,7 +305,7 @@ assert_eq!(7, b.val);
 ## Generics
 We can use generics for `impl_ops` and `impl_uni_ops` much like how we use generics for standard functions.
 
-```rust
+```rust ignore
 use std::ops::Add;
 
 pub struct Num<T>(pub T);
@@ -327,7 +330,7 @@ fn add<T>(self: Num<T>, rhs: Num<T>) -> Num<T> where T: Add<Output = T> + Copy {
 # A Realistic Example
 We've only shown useless examples so far, but that was because these were simplified so that it's easier to look at once you know how it works. The following is an example that makes use of [`SIMD`](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#!=undefined) instructions for `x86_64` architecture, to compute quaternion multiplications. While it isn't the complete source code, this is just a snippet of how `opimps` is being used to implement a mathematical library.
 
-```rust
+```rust ignore
 // No explanation of quaternions will be provided here since it involves a lot of theory. You only need to know that it's used to perform 3D rotations while avoiding the issues of gimbal locking that occurs from performing rotations using euler angles.
 
 /// ```
