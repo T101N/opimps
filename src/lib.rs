@@ -39,7 +39,7 @@ pub fn impl_uni_op(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = fn_item.attrs;
 
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.") }
     };
 
@@ -61,16 +61,14 @@ pub fn impl_uni_op(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let where_clause = &fn_generics.where_clause;
 
-    let token = quote! {
+    quote! {
         impl #fn_generics #trait_path for #lhs_type #where_clause {
             type Output = #fn_type;
             #other_tkns
             fn #fn_name (self) -> Self::Output 
                 #fn_body
         }
-    };
-
-    TokenStream::from(token)
+    }.into()
 }
 
 /// Implements the unary operators for the specified type.
@@ -110,13 +108,13 @@ pub fn impl_uni_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = fn_item.attrs;
 
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.")}
     };
 
     let (comments, other_tkns) = extract_comments(&attrs);
 
-    let lhs_pat = &lhs.pat;
+    let lhs_pat = &lhs.self_token;
     let lhs_type = &lhs.ty;
 
     let fn_body = fn_item.block;
@@ -194,7 +192,7 @@ pub fn impl_op(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = fn_item.attrs;
 
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.")}
     };
 
@@ -269,7 +267,7 @@ pub fn impl_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
     let rhs = fn_args.next().expect(INSUFFICIENT_ARGS_MSG);
     
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.")}
     };
 
@@ -278,7 +276,7 @@ pub fn impl_ops(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Error processing second argument.")}
     };
 
-    let lhs_pat = &lhs.pat;
+    let lhs_pat = &lhs.self_token;
     let lhs_type = &lhs.ty;
     let rhs_pat = &rhs.pat;
     let rhs_type = &rhs.ty;
@@ -433,7 +431,7 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
     let rhs = fn_args.next().expect(INSUFFICIENT_ARGS_MSG);
     
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.")}
     };
 
@@ -442,8 +440,6 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => { panic!("Error processing second argument.")}
     };
 
-    let lhs_pat = &lhs.pat;
-    let lhs_type = &lhs.ty;
     let rhs_pat = &rhs.pat;
     let rhs_type = &rhs.ty;
     
@@ -467,7 +463,7 @@ pub fn impl_ops_lprim(attr: TokenStream, item: TokenStream) -> TokenStream {
         
         #other_tkns
         #[opimps::impl_op(#trait_path)]
-        fn #fn_name #fn_generics (#lhs_pat: #lhs_type, #rhs_pat: &#rhs_type) -> #fn_output #where_clause
+        fn #fn_name #fn_generics (#lhs, #rhs_pat: &#rhs_type) -> #fn_output #where_clause
             #fn_body
     };
     
@@ -520,7 +516,7 @@ pub fn impl_op_assign(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = fn_item.attrs;
 
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.")}
     };
 
@@ -596,7 +592,7 @@ pub fn impl_ops_assign(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = fn_item.attrs;
 
     let lhs = match lhs {
-        syn::FnArg::Typed(e) => e,
+        syn::FnArg::Receiver(e) => e,
         _ => { panic!("Error processing first argument.")}
     };
 
@@ -643,7 +639,7 @@ fn extract_comments(attrs: &Vec<Attribute>) -> (proc_macro2::TokenStream, proc_m
     let mut comments = proc_macro2::TokenStream::new();
 
     for attr in attrs.into_iter() {
-        if attr.path.is_ident("doc") {
+        if attr.path().is_ident("doc") {
             comments.extend(attr.to_token_stream());
         } else {
             other_tkns.extend(attr.to_token_stream());

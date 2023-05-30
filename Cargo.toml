@@ -1,7 +1,7 @@
 [package]
 name = "opimps"
 description = "A simple library of attribute macros to assist with overloading operators for borrowed and owned data."
-version = "0.1.4"
+version = "0.2.0"
 authors = ["Tony Nguyen <900692-t101@users.noreply.gitlab.com>"]
 edition = "2018"
 readme = "README.md"
@@ -18,6 +18,6 @@ include = [
 proc-macro = true
 
 [dependencies]
-syn = { version = "1.0", features = ["full"] }
-quote = "1.0"
-proc-macro2 = "1.0"
+syn = { version = "^2.0.18", features = ["full"] }
+quote = "^1.0.28"
+proc-macro2 = "^1.0.59"
